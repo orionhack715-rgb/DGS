@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
-const http = require('http');
+const https = require('https');
 const rateLimit = require('express-rate-limit');
 
 const { syncDatabase, seedDefaultAdmin } = require('./models');
@@ -59,7 +59,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Dat
 
 // Sitemap
 app.get('/sitemap.xml', (req, res) => {
-  const base = process.env.CLIENT_URL || 'http://localhost:5173';
+  const base = process.env.CLIENT_URL || 'https://digital-get.com';
   const pages = ['accueil', 'propos', 'services', 'realisation', 'notreEquipe', 'formulaire'];
   const urls = pages.map(p => `<url><loc>${base}/${p}</loc><changefreq>weekly</changefreq></url>`).join('');
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
