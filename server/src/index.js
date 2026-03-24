@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
-const https = require('https');
+const http = require('http');
 const rateLimit = require('express-rate-limit');
 
 const { syncDatabase, seedDefaultAdmin } = require('./models');
@@ -17,13 +17,25 @@ const siteRoutes = require('./routes/site');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
-const server = https.createServer(app);
+const server = http.createServer(app);
 
 // ─── Middlewares ──────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
+
+const clientOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((u) => u.trim()).filter(Boolean)
+  : ['http://localhost:5173'];
+const primaryClientUrl = process.env.PUBLIC_SITE_URL || clientOrigins[0] || 'http://localhost:5173';
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'https://digital-get.com',
+  origin: (origin, callback) => {
+    if (!origin || clientOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS origin denied: ${origin}`));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -59,7 +71,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Dat
 
 // Sitemap
 app.get('/sitemap.xml', (req, res) => {
-  const base = process.env.CLIENT_URL || 'https://digital-get.com';
+  const base = primaryClientUrl;
   const pages = ['accueil', 'propos', 'services', 'realisation', 'notreEquipe', 'formulaire'];
   const urls = pages.map(p => `<url><loc>${base}/${p}</loc><changefreq>weekly</changefreq></url>`).join('');
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);

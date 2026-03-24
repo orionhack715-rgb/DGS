@@ -6,6 +6,24 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
+function parseBoolean(value, fallback) {
+  if (value === undefined) return fallback;
+  return String(value).trim().toLowerCase() === 'true';
+}
+
+function resolveCookieSettings() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const envSameSite = String(process.env.SESSION_COOKIE_SAMESITE || '').trim().toLowerCase();
+  const sameSite = ['lax', 'strict', 'none'].includes(envSameSite)
+    ? envSameSite
+    : (isProduction ? 'none' : 'lax');
+
+  const secureFromEnv = parseBoolean(process.env.SESSION_COOKIE_SECURE, isProduction || sameSite === 'none');
+  const secure = sameSite === 'none' ? true : secureFromEnv;
+
+  return { secure, sameSite };
+}
+
 function generateTokens(userId, role) {
   const accessToken = jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
   const refreshToken = jwt.sign({ userId }, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
@@ -13,25 +31,26 @@ function generateTokens(userId, role) {
 }
 
 function setTokenCookies(res, accessToken, refreshToken) {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const { secure, sameSite } = resolveCookieSettings();
   res.cookie('access_token', accessToken, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: 'Lax',
+    secure,
+    sameSite,
     maxAge: 15 * 60 * 1000, // 15 min
   });
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: 'Lax',
+    secure,
+    sameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/api/auth/refresh',
   });
 }
 
 function clearTokenCookies(res) {
-  res.clearCookie('access_token');
-  res.clearCookie('refresh_token', { path: '/api/auth/refresh' });
+  const { secure, sameSite } = resolveCookieSettings();
+  res.clearCookie('access_token', { httpOnly: true, secure, sameSite });
+  res.clearCookie('refresh_token', { path: '/api/auth/refresh', httpOnly: true, secure, sameSite });
 }
 
 // Middleware: authenticate via cookie or Authorization header

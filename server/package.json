@@ -3,14 +3,9 @@
   "version": "1.0.0",
   "description": "Backend Express pour Digital Get Services",
   "main": "src/index.js",
-  "engines": {
-    "node": "18.x"
-  },
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "render:keepalive": "node scripts/render-keepalive.js",
-    "render:keepalive:once": "node scripts/render-keepalive.js --once"
+    "dev": "nodemon src/index.js"
   },
   "dependencies": {
     "pg": "^8.11.0",
