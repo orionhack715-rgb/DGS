@@ -23,7 +23,7 @@ const server = https.createServer(app);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: process.env.CLIENT_URL || 'https://digital-get.com',
   credentials: true,
 }));
 app.use(express.json());
