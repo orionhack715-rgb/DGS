@@ -17,7 +17,7 @@ const siteRoutes = require('./routes/site');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(app);
 
 // ─── Middlewares ──────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
