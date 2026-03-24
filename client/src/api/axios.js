@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const defaultApiURL = import.meta.env.MODE === 'development'
   ? '/api'
-  : 'https://dgs-1.onrender.com/api'
+  : 'https://dgs-1.onrender.com'
 
 const rawApiBaseURL = import.meta.env.VITE_API_URL || defaultApiURL
 const apiBaseURL = rawApiBaseURL.endsWith('/') ? rawApiBaseURL.slice(0, -1) : rawApiBaseURL
